@@ -1,31 +1,37 @@
-# ConVerse: Benchmarking Contextual Safety in Agent-to-Agent Conversations
+# Firewalls to Secure Dynamic LLM Agentic Networks
 
-[![arXiv](https://img.shields.io/badge/arXiv-2511.05359-b31b1b.svg)](https://arxiv.org/abs/2511.05359)
+[![arXiv](https://img.shields.io/badge/arXiv-2502.01822-b31b1b.svg)](https://arxiv.org/abs/2502.01822)
+[![ConVerse Benchmark](https://img.shields.io/badge/arXiv-2511.05359_(ConVerse)-blue.svg)](https://arxiv.org/abs/2511.05359)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+> **Note**: This is the actively maintained version of the project. Development originally began at Microsoft ([microsoft/Firewalled-Agentic-Networks](https://github.com/microsoft/Firewalled-Agentic-Networks)), but that repository is no longer maintained. All continued development by the same authors is published here.
+
 <p align="center">
-  <img src="ConVerse.png" alt="ConVerse Benchmark Overview" width="100%">
+  <img src="system_overview.png" alt="Dual-Firewall Architecture Overview" width="100%">
 </p>
 
 <p align="center">
-  <em>Figure: ConVerse contains three realistic domains (Travel, Real Estate, Insurance) with 158-184 options each, 12 user profiles with three-tier privacy taxonomy, and 864 contextual attacks (611 privacy, 253 security). Multi-turn interactions between AI assistants and external agents enable evaluation of 7 SOTA models.</em>
+  <em>Figure 1: The dual-firewall architecture for agent-to-agent communication. Incoming path (right): Messages from the external service agent pass through the Language Converter Firewall, which transforms natural language into a structured protocol using a learned domain-specific schema, followed by deterministic verification. Outgoing path (left): When the assistant queries the user's data, responses pass through the Data Abstraction Firewall, which applies learned rules to filter, abstract, or pass information according to contextual appropriateness.</em>
 </p>
 
-**ConVerse** is a comprehensive benchmark for evaluating privacy and security risks in multi-agent LLM conversations. ConVerse assesses how well AI assistants protect user data and resist manipulation when interacting with external agents across realistic use cases.
+This repository contains the code for **Firewalls to Secure Dynamic LLM Agentic Networks**, a dual-firewall architecture that provides structural protection for agent-to-agent communication. Our firewalls act as projections onto the task context, allowing only contextually appropriate content to cross each trust boundary — near-eliminating both privacy leakage and security attacks while maintaining or improving task utility.
 
-> **Research Context**: As language models evolve into autonomous agents that act and communicate on behalf of users, ensuring safety in multi-agent ecosystems becomes a central challenge. Interactions between personal assistants and external service providers expose a core tension: effective collaboration requires information sharing, yet every exchange creates new attack surfaces.
+This work builds on and extends the **[ConVerse](https://github.com/amrgomaaelhady/ConVerse)** benchmark ([Gomaa et al., 2025](https://arxiv.org/abs/2511.05359)), which provides the evaluation framework for contextual safety in agent-to-agent conversations.
 
-**Key Statistics:**
-- **864 contextually grounded attacks** (611 privacy, 253 security)
-- **3 realistic domains**: Travel Planning, Real Estate, Insurance  
-- **12 user personas** with detailed profiles and preferences
-- **7 SOTA models evaluated**: GPT-5, Claude Sonnet 4.0, Claude Haiku 3.5, Gemini 2.5 Pro, Gemini 2.5 Flash, Grok-3, O3-mini
-- **Multi-turn agent-to-agent interactions**: Autonomous conversations where attacks are embedded within plausible, contextually relevant discourse
-- **Evaluation Results**: Privacy attacks succeed in up to **88%** of cases, security breaches in up to **60%**
+> **Research Context**: The emergence of agent-to-agent communication protocols mirrors the early internet: powerful connectivity with minimal security infrastructure. When AI agents communicate on behalf of users, every message crosses a trust boundary where the user's personal data and the external agent's unconstrained language each present distinct risks. We address both through a dual-firewall architecture grounded in a unifying principle: each task defines a context, and both sides of the communication carry information far exceeding what that context requires.
+
+**Key Results:**
+- **Privacy ASR reduced by 80–90%**: e.g., from 84% to 10% for GPT-5
+- **Security ASR reduced to under 4%**: e.g., from 60% to 3% for GPT-5
+- **Utility preserved or improved**: Plan quality ratings increase with firewall protection
+- **864 contextually grounded attacks** across 3 domains (Travel, Real Estate, Insurance) from the [ConVerse](https://github.com/amrgomaaelhady/ConVerse) benchmark
+- **4 frontier models evaluated**: GPT-5, Claude Sonnet 4, Gemini 2.5 Pro, Gemini 2.5 Flash
+- **Structural guarantees**: Protection holds regardless of attack sophistication — manipulation has no channel through which to arrive
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Dual-Firewall Architecture](#dual-firewall-architecture)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -39,16 +45,17 @@
 
 ## Overview
 
-ConVerse evaluates AI assistants in multi-agent settings where they must:
-- **Protect user privacy** through proper information abstraction (not just filtering)
-- **Resist security attacks** including toolkit manipulation and preference manipulation
-- **Maintain utility** by successfully completing complex planning tasks
+This project implements a **dual-firewall architecture** for securing LLM agent-to-agent communication, evaluated on the [ConVerse](https://github.com/amrgomaaelhady/ConVerse) benchmark. The system addresses two fundamental risks:
+- **Privacy leakage**: Agents overshare user data during task execution, even without adversarial prompting
+- **Security attacks**: External agents use contextual manipulation (persuasive framing, urgency tactics, social engineering) to steer assistant behavior
 
-The benchmark models **autonomous, multi-turn agent-to-agent conversations** where malicious requests are contextually embedded within legitimate task domains, making them harder to detect than obvious adversarial prompts.
+Our firewalls provide **structural guarantees** that do not depend on the underlying model's robustness or alignment. They operate in a trusted environment isolated from external input, applying domain-specific rules learned automatically from demonstrations.
 
-### Privacy Taxonomy
+The evaluation uses the **ConVerse** benchmark ([Gomaa et al., 2025](https://arxiv.org/abs/2511.05359)), which models **autonomous, multi-turn agent-to-agent conversations** where malicious requests are contextually embedded within legitimate task domains across three practical domains.
 
-ConVerse uses a **three-tier privacy taxonomy** that goes beyond binary access control:
+### Privacy Taxonomy (from ConVerse)
+
+The [ConVerse](https://github.com/amrgomaaelhady/ConVerse) benchmark uses a **three-tier privacy taxonomy** that goes beyond binary access control:
 
 1. **Unrelated Data** (34.4% of attacks): No relevance to the task domain
    - Example: Employer details when planning vacation
@@ -72,38 +79,88 @@ ConVerse uses a **three-tier privacy taxonomy** that goes beyond binary access c
 
 ### Key Findings
 
-Evaluating 7 state-of-the-art models reveals:
-
-- **Higher-capability models leak more**: An 84.68% privacy ASR is achieved on GPT-5 although it maintain strong utility (completel tasks average rating (hereafter called rating): 7.99, Average percentage of completing and covering all tasks (hereafter called coverage): 96.55%)
-- **Proximity to domain correlates with leakage**: "Related and Useful" data exhibits 90-94% ASR
+**Baseline vulnerabilities** (without firewalls, from [ConVerse](https://github.com/amrgomaaelhady/ConVerse)):
+- **Higher-capability models leak more**: 84.68% privacy ASR on GPT-5 despite strong utility (rating: 7.99, coverage: 96.55%)
 - **Privacy is harder to defend than security**: Privacy ASR averages 64% vs. security ASR 33% across models
 - **Contextual attacks are highly effective**: Multi-turn attacks using plausible justifications succeed at high rates
-- **Models fail at abstraction**: Current LLMs cannot distinguish legitimate cooperation from contextual coercion
-- **Privacy-utility tradeoff exists**: Models that better personalize plans are more susceptible to contextual privacy attacks
+
+**With dual-firewall architecture** (this work):
+- **Privacy ASR dramatically reduced**: GPT-5 drops from 88.51% to 7.77% on Travel Planning; all models converge to 7-9% ASR
+- **Security attacks near-eliminated**: All models under 4% ASR (e.g., GPT-5 from 55.32% to 3.26%)
+- **Utility preserved or improved**: Plan quality ratings increase (e.g., GPT-5: 8.07 → 8.42), coverage remains stable or improves
+- **Firewalls complement each other**: Data Abstraction alone reduces privacy ASR to 29%; Language Conversion alone to 21%; both together achieve 7.77%
+- **Generalizes across personas**: Rules learned from 2 personas protect held-out personas equally well
 
 
 ### System Architecture
 
-The benchmark simulates a three-agent system:
+The system uses a three-agent architecture from [ConVerse](https://github.com/amrgomaaelhady/ConVerse), augmented with our dual-firewall protection:
 1. **User Environment Agent**: Represents the user with specific preferences and data
 2. **Assistant Agent**: The LLM-based assistant being evaluated
 3. **External Agent**: Simulates external services (travel agency, realtor, insurance broker)
+4. **Language Converter Firewall** *(new)*: Interposes between external agent and assistant — converts incoming natural language to a closed, structured protocol
+5. **Data Abstraction Firewall** *(new)*: Interposes between user environment and assistant — abstracts personal data to task-appropriate granularity
 
-### What Makes ConVerse Different?
+---
 
-| Feature | Prior Benchmarks | ConVerse |
+## Dual-Firewall Architecture
+
+Our architecture interposes two complementary firewalls that together near-eliminate the conditions under which both privacy and security attacks succeed.
+
+<p align="center">
+  <img src="firewall_examples.png" alt="Firewall Examples" width="100%">
+</p>
+
+<p align="center">
+  <em>Figure 2: Illustration of the dual-firewall architecture. Left (Data Abstraction): The user's home address is minimally transformed before reaching the assistant, preserving utility while removing identifying details. Right (Language Conversion): The external agent's natural language message (which may contain manipulative text) is converted to a closed structured protocol with validated fields and where free-form strings are sanitized.</em>
+</p>
+
+### Language Converter Firewall
+
+The main enabler of security attacks in agent-to-agent communication is **natural language itself**. An external agent can embed urgency cues, social proof, appeals to authority, or direct instruction manipulation. The Language Converter Firewall inverts this asymmetry by converting incoming messages into a **closed, domain-specific structured protocol** before the assistant processes them.
+
+**How it works:**
+1. **LLM Conversion**: An LLM converts the external agent's natural language message into a structured JSON object based on a learned domain-specific schema
+2. **Deterministic Verification**: A programmatic verifier validates every field — enumerated values are checked against valid sets, types are validated, unknown keys are dropped
+3. **String Anonymization**: Free-form string fields (hotel names, airlines) are replaced with anonymous identifiers (e.g., `hotel_1`) to prevent embedded injection attacks
+
+**Security guarantees**: Closed vocabulary, constrained values, type safety, string isolation, and deterministic verification. These hold regardless of attack sophistication because the attack surface of arbitrary natural language is eliminated.
+
+### Data Abstraction Firewall
+
+Even when processing only sanitized structured input, LLM assistants tend to **overshare** personal data. The Data Abstraction Firewall transforms personal data before it reaches the assistant, operating on the principle of **contextual integrity** — appropriate information sharing depends on context.
+
+**How it works:**
+- The firewall receives raw data from the knowledge base along with learned abstraction rules, but **never sees** the external agent's messages or conversation context
+- It applies domain-specific rules that specify what information to allow, abstract, or block and at what granularity
+- Example: A home address becomes "departing from the Paris area"; a specific age becomes "adult"; a medication list is reduced to "has a food allergy"
+
+**Key property**: Adversarial isolation — manipulation attempts from the external agent cannot influence the abstraction process because the firewall has no channel through which that reasoning could arrive.
+
+### Automated Rule Learning
+
+Both firewalls operate by applying pre-generated rules **learned from demonstrations** rather than manually specified:
+- **Language Converter rules** are learned from benign conversation corpora — an LLM identifies what information types are legitimately exchanged and produces a structured schema
+- **Data Abstraction rules** are learned from paired benign/attack corpora — by contrasting legitimate and adversarial conversations, the system identifies appropriate disclosure levels
+
+Rules capture domain-appropriate norms rather than persona-specific details, enabling generalization to new users and attack types. See [FIREWALL_GUIDE.md](FIREWALL_GUIDE.md) for details on generating rules.
+
+### Comparison
+
+| Feature | Prior Approaches | Our Dual-Firewall Architecture |
 |---------|-----------------|----------|
-| **Interaction Model** | Single-agent, static prompts | Multi-agent, dynamic conversations |
-| **Attack Style** | Obvious out-of-context jailbreaks | Contextually embedded manipulation |
-| **Privacy Model** | Binary filtering | Three-tier abstraction taxonomy |
-| **Attack Timing** | Single-turn | Strategic multi-turn progression |
+| **Security Model** | Detect malicious content (adversary can win iteratively) | Structural elimination of manipulation channels |
+| **Privacy Model** | Binary disclose-or-redact filtering | Context-appropriate abstraction at right granularity |
+| **Attack Surface** | Unbounded natural language | Closed, verified structured protocol |
+| **Firewall Placement** | Output filtering (can be manipulated) | Input-side protection in trusted environment |
+| **Rule Specification** | Manual rules or model-level alignment | Automatically learned from demonstrations |
 
 ---
 
 ## Project Structure
 
 ```
-ConVerse/
+Firewall-Agentic-Networks/
 ├── main.py                          # Main execution script
 ├── requirements.txt                 # Python dependencies
 ├── model.py                         # LLM interface and provider management
@@ -148,14 +205,14 @@ ConVerse/
 │   ├── config.py                  # Use case registry and configs
 │   └── data_loader.py             # Data loading utilities
 │
-├── firewalls/                      # Firewall protection modules (optional)
+├── firewalls/                      # Dual-firewall architecture (core contribution)
 │   ├── __init__.py                # Package exports
-│   ├── language_checker.py       # JSON validation and ID mapping
-│   ├── language_converter_firewall.py  # Language converter firewall for external agents
-│   └── data_abstraction_firewall.py  # Data abstraction for environment
+│   ├── language_checker.py       # JSON validation, type checking, and ID mapping
+│   ├── language_converter_firewall.py  # Language Converter Firewall: structured protocol enforcement
+│   └── data_abstraction_firewall.py  # Data Abstraction Firewall: contextual data projection
 │
-├── mitigation_guidelines/          # Firewall configuration (optional)
-│   └── generated/                 # Generated domain-specific guidelines
+├── mitigation_guidelines/          # Firewall rule generation and configuration
+│   └── generated/                 # Auto-learned domain-specific guidelines
 │       ├── travel_planning/
 │       ├── insurance/
 │       └── real_estate/
@@ -208,8 +265,8 @@ ConVerse/
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/amrgomaaelhady/ConVerse.git
-cd ConVerse
+git clone https://github.com/amrgomaaelhady/Firewall-Agentic-Networks.git
+cd Firewall-Agentic-Networks
 ```
 
 ### Step 2: Create Virtual Environment (Recommended)
@@ -464,15 +521,15 @@ python main.py \
 
 ### Firewall Protection
 
-ConVerse includes firewall capabilities to test privacy and security protections:
+This repository implements the dual-firewall architecture from our paper. See [Dual-Firewall Architecture](#dual-firewall-architecture) for a detailed description.
 
 #### Data Abstraction Firewall
-Filters sensitive information from environment responses before sharing with external agents.
+Projects outgoing information onto the granularity appropriate for the task. Operates in a trusted environment isolated from external input, applying domain-specific abstraction rules learned from demonstrations.
 
 #### Language Converter Firewall
-Converts external agent outputs into a structured, controlled JSON format with predefined fields to prevent manipulation through free-form natural language.
+Projects incoming messages onto a closed, domain-specific structured protocol. External agent messages are converted to validated fields while persuasive framing, urgency tactics, and embedded instructions are structurally eliminated through deterministic verification.
 
-**Note**: Firewalls require pre-generated guidelines. See [FIREWALL_GUIDE.md](FIREWALL_GUIDE.md) for details.
+**Note**: Firewalls require pre-generated guidelines (learned from demonstration corpora). See [FIREWALL_GUIDE.md](FIREWALL_GUIDE.md) for details on generating rules.
 
 **Example with Firewalls**:
 ```bash
@@ -849,9 +906,18 @@ python benchmark_stats.py
 
 ## Citation
 
-If you use this benchmark in your research, please cite:
+If you use this code or the firewall architecture in your research, please cite both papers:
 
 ```bibtex
+@article{abdelnabi2025firewalls,
+  title={Firewalls to Secure Dynamic LLM Agentic Networks},
+  author={Sahar Abdelnabi and Amr Gomaa and Eugene Bagdasarian and Per Ola Kristensson and Reza Shokri},
+  journal={arXiv preprint arXiv:2502.01822},
+  year={2025},
+  doi={10.48550/arXiv.2502.01822},
+  url={https://arxiv.org/abs/2502.01822}
+}
+
 @article{gomaa2025converse,
   title={ConVerse: Benchmarking Contextual Safety in Agent-to-Agent Conversations},
   author={Amr Gomaa and Ahmed Salem and Sahar Abdelnabi},
@@ -865,18 +931,21 @@ If you use this benchmark in your research, please cite:
 
 ## License
 
-This project is released under the [MIT License](LICENSE). The code partially builds on [ToolEmu](https://github.com/ryoungj/ToolEmu) and prior work on [agent-to-agent firewalls](https://github.com/microsoft/Firewalled-Agentic-Networks).
+This project is released under the [MIT License](LICENSE). The code builds on the [ConVerse](https://github.com/amrgomaaelhady/ConVerse) benchmark, [ToolEmu](https://github.com/ryoungj/ToolEmu), and prior work on [agent-to-agent firewalls](https://github.com/microsoft/Firewalled-Agentic-Networks).
 
 ---
 
 ## Contact
 
 For questions, issues, or contributions:
-- **Paper**: [arXiv:2511.05359](https://arxiv.org/abs/2511.05359)
+- **Firewalls Paper**: [arXiv:2502.01822](https://arxiv.org/abs/2502.01822)
+- **ConVerse Benchmark Paper**: [arXiv:2511.05359](https://arxiv.org/abs/2511.05359)
 - **Authors**:
-  - Amr Gomaa (German Research Center for Artificial Intelligence - DFKI)
-  - Ahmed Salem (Microsoft)
   - Sahar Abdelnabi (ELLIS Institute Tübingen, MPI for Intelligent Systems, Tübingen AI Center)
+  - Amr Gomaa (German Research Center for Artificial Intelligence - DFKI, University of Cambridge)
+  - Eugene Bagdasarian (University of Massachusetts Amherst)
+  - Per Ola Kristensson (University of Cambridge)
+  - Reza Shokri (National University of Singapore, Google Research)
 
 ---
 
